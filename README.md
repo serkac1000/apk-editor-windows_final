@@ -84,4 +84,4 @@ python main.py
 
 ## License
 
-This project is for educational purposes. Ensure you have permission to modify APK files before using this tool.
+This project is for educational purposes. Ensure you have permission to modify APK files before using this tool.# apkeditorversion2
