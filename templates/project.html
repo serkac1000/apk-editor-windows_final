@@ -76,6 +76,137 @@
                 </h5>
             </div>
             <div class="card-body">
+                <!-- GUI Modification Form -->
+                <form method="POST" action="{{ url_for('modify_gui', project_id=project.id) }}" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="gui_changes" class="form-label">Describe GUI Changes</label>
+                                <textarea class="form-control" id="gui_changes" name="gui_changes" rows="4" 
+                                    placeholder="Example: Change control knob color to blue, make D-pad bigger, add glow effect..."></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="color_scheme" class="form-label">Color Scheme</label>
+                                <select class="form-select" id="color_scheme" name="color_scheme">
+                                    <option value="">Keep Current</option>
+                                    <option value="blue">Blue Theme</option>
+                                    <option value="green">Green Theme</option>
+                                    <option value="red">Red Theme</option>
+                                    <option value="purple">Purple Theme</option>
+                                    <option value="orange">Orange Theme</option>
+                                    <option value="dark">Dark Theme</option>
+                                    <option value="light">Light Theme</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reference_images" class="form-label">Reference Images (Optional)</label>
+                                <input type="file" class="form-control" id="reference_images" name="reference_images" 
+                                    accept="image/*" multiple>
+                                <div class="form-text">Upload reference images for design inspiration</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">
+                            <i data-feather="edit"></i>
+                            Apply GUI Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Resources Section -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="folder"></i>
+                    Project Resources
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if resources %}
+                    <div class="row">
+                        <!-- Images -->
+                        {% if resources.images %}
+                        <div class="col-md-4 mb-4">
+                            <h6><i data-feather="image"></i> Images</h6>
+                            <div class="list-group">
+                                {% for image in resources.images[:10] %}
+                                <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='image', resource_path=image) }}" 
+                                   class="list-group-item list-group-item-action">
+                                    <i data-feather="file-image"></i>
+                                    {{ image.split('/')[-1] }}
+                                </a>
+                                {% endfor %}
+                                {% if resources.images|length > 10 %}
+                                <div class="list-group-item">
+                                    <small class="text-muted">... and {{ resources.images|length - 10 }} more</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Strings -->
+                        {% if resources.strings %}
+                        <div class="col-md-4 mb-4">
+                            <h6><i data-feather="type"></i> Strings</h6>
+                            <div class="list-group">
+                                {% for string in resources.strings[:10] %}
+                                <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='string', resource_path=string) }}" 
+                                   class="list-group-item list-group-item-action">
+                                    <i data-feather="file-text"></i>
+                                    {{ string.split('/')[-1] }}
+                                </a>
+                                {% endfor %}
+                                {% if resources.strings|length > 10 %}
+                                <div class="list-group-item">
+                                    <small class="text-muted">... and {{ resources.strings|length - 10 }} more</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Layouts -->
+                        {% if resources.layouts %}
+                        <div class="col-md-4 mb-4">
+                            <h6><i data-feather="layout"></i> Layouts</h6>
+                            <div class="list-group">
+                                {% for layout in resources.layouts[:10] %}
+                                <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='layout', resource_path=layout) }}" 
+                                   class="list-group-item list-group-item-action">
+                                    <i data-feather="file-code"></i>
+                                    {{ layout.split('/')[-1] }}
+                                </a>
+                                {% endfor %}
+                                {% if resources.layouts|length > 10 %}
+                                <div class="list-group-item">
+                                    <small class="text-muted">... and {{ resources.layouts|length - 10 }} more</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i data-feather="folder-x" class="text-muted" style="width: 48px; height: 48px;"></i>
+                        <h6 class="text-muted mt-3">No resources found</h6>
+                        <p class="text-muted">The APK might not have been properly decompiled</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    feather.replace();
+</script>
                 <div class="row">
                     <div class="col-md-4">
                         <div class="smartphone-preview">

@@ -193,6 +193,10 @@ function copyToClipboard(text) {
 
 // Export functions for global use
 window.APKEditor = {
+    init: function() {
+        console.log('APK Editor initialized');
+        // Initialize any required components here
+    },
     showAlert,
     formatFileSize,
     copyToClipboard
