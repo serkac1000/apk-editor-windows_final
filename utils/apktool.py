@@ -2,6 +2,10 @@ import os
 import subprocess
 import logging
 import shutil
+import base64
+import hashlib
+import time
+import zipfile
 from pathlib import Path
 
 class APKTool:
@@ -205,10 +209,6 @@ class APKTool:
     def _simulate_compile(self, source_dir, output_apk):
         """Simulate compilation when apktool is not available"""
         try:
-            import zipfile
-            import hashlib
-            import base64
-            import time
             
             # Create a more legitimate APK structure
             with zipfile.ZipFile(output_apk, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as zipf:

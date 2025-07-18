@@ -208,7 +208,7 @@
                                 {% for image in resources.images[:10] %}
                                 <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='image', resource_path=image.path if image is mapping else image) }}" 
                                    class="list-group-item list-group-item-action">
-                                    <i data-feather="file-image"></i>
+                                    <i data-feather="file-text"></i>
                                     {{ image.name if image is mapping else image.split('/')[-1] }}
                                 </a>
                                 {% endfor %}

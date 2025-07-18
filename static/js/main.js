@@ -1,204 +1,233 @@
-// Main JavaScript for APK Editor
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    tooltipTriggerList.map(function(tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
 
-    // File upload validation
-    const fileInput = document.getElementById('apk_file');
-    if (fileInput) {
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                if (!file.name.toLowerCase().endsWith('.apk')) {
-                    showAlert('Please select a valid APK file', 'error');
-                    this.value = '';
-                    return;
+// APK Editor JavaScript functionality
+const APKEditor = {
+    init: function() {
+        console.log('APK Editor initialized');
+        this.setupEventListeners();
+        this.initializeFeatherIcons();
+    },
+
+    setupEventListeners: function() {
+        // File upload validation
+        const fileInput = document.getElementById('apk_file');
+        if (fileInput) {
+            fileInput.addEventListener('change', this.validateFileUpload);
+        }
+
+        // Project form validation
+        const projectForm = document.getElementById('uploadForm');
+        if (projectForm) {
+            projectForm.addEventListener('submit', this.validateProjectForm);
+        }
+
+        // GUI modification form
+        const guiForm = document.querySelector('form[action*="modify_gui"]');
+        if (guiForm) {
+            guiForm.addEventListener('submit', this.validateGuiForm);
+        }
+
+        // Function generator form
+        const functionForm = document.querySelector('form[action*="generate_function"]');
+        if (functionForm) {
+            functionForm.addEventListener('submit', this.validateFunctionForm);
+        }
+
+        // Image preview for uploads
+        const imageInputs = document.querySelectorAll('input[type="file"][accept*="image"]');
+        imageInputs.forEach(input => {
+            input.addEventListener('change', this.previewImages);
+        });
+    },
+
+    initializeFeatherIcons: function() {
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    },
+
+    validateFileUpload: function(event) {
+        const file = event.target.files[0];
+        const errorDiv = document.getElementById('file-error');
+        
+        if (errorDiv) {
+            errorDiv.textContent = '';
+        }
+
+        if (file) {
+            // Check file size (100MB limit)
+            if (file.size > 100 * 1024 * 1024) {
+                if (errorDiv) {
+                    errorDiv.textContent = 'File size must be less than 100MB';
+                    errorDiv.className = 'alert alert-danger mt-2';
                 }
+                event.target.value = '';
+                return false;
+            }
 
-                if (file.size > 100 * 1024 * 1024) { // 100MB
-                    showAlert('File size must be less than 100MB', 'error');
-                    this.value = '';
-                    return;
+            // Check file extension
+            if (!file.name.toLowerCase().endsWith('.apk')) {
+                if (errorDiv) {
+                    errorDiv.textContent = 'Please select an APK file';
+                    errorDiv.className = 'alert alert-danger mt-2';
                 }
-
-                // Auto-fill project name if empty
-                const projectNameInput = document.getElementById('project_name');
-                if (projectNameInput && !projectNameInput.value) {
-                    projectNameInput.value = file.name.replace('.apk', '');
-                }
+                event.target.value = '';
+                return false;
             }
-        });
-    }
 
-    // Form submission with loading state
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            const submitBtn = this.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-
-                // Re-enable button after 30 seconds as fallback
-                setTimeout(() => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = submitBtn.dataset.originalText || 'Submit';
-                }, 30000);
+            // Show file info
+            const fileInfo = document.getElementById('file-info');
+            if (fileInfo) {
+                fileInfo.innerHTML = `
+                    <div class="alert alert-info mt-2">
+                        <strong>Selected:</strong> ${file.name} (${APKEditor.formatFileSize(file.size)})
+                    </div>
+                `;
             }
-        });
-    });
+        }
 
-    // Auto-dismiss alerts
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-        }, 5000);
-    });
+        return true;
+    },
 
-    // Code editor enhancements
-    const codeEditors = document.querySelectorAll('.code-editor');
-    codeEditors.forEach(editor => {
-        // Add line numbers (simple implementation)
-        editor.addEventListener('scroll', function() {
-            // Sync line numbers if they exist
-            const lineNumbers = this.parentElement.querySelector('.line-numbers');
-            if (lineNumbers) {
-                lineNumbers.scrollTop = this.scrollTop;
-            }
-        });
+    validateProjectForm: function(event) {
+        const projectName = document.getElementById('project_name');
+        const fileInput = document.getElementById('apk_file');
 
-        // Add tab support
-        editor.addEventListener('keydown', function(e) {
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                const start = this.selectionStart;
-                const end = this.selectionEnd;
+        if (!projectName || !projectName.value.trim()) {
+            alert('Please enter a project name');
+            event.preventDefault();
+            return false;
+        }
 
-                // Insert tab character
-                this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
+        if (!fileInput || !fileInput.files[0]) {
+            alert('Please select an APK file');
+            event.preventDefault();
+            return false;
+        }
 
-                // Move cursor
-                this.selectionStart = this.selectionEnd = start + 1;
-            }
-        });
-    });
+        // Show loading state
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+        }
 
-    // Confirmation dialogs
-    const deleteLinks = document.querySelectorAll('a[href*="/delete/"]');
-    deleteLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-                e.preventDefault();
-            }
-        });
-    });
+        return true;
+    },
 
-    // Image preview for image uploads
-    const imageInputs = document.querySelectorAll('input[type="file"][accept*="image"]');
-    imageInputs.forEach(input => {
-        input.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
+    validateGuiForm: function(event) {
+        const guiChanges = document.getElementById('gui_changes');
+        
+        if (!guiChanges || !guiChanges.value.trim()) {
+            alert('Please describe the GUI changes you want');
+            event.preventDefault();
+            return false;
+        }
+
+        // Show loading state
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Applying Changes...';
+        }
+
+        return true;
+    },
+
+    validateFunctionForm: function(event) {
+        const functionPrompt = document.getElementById('function_prompt');
+        
+        if (!functionPrompt || !functionPrompt.value.trim()) {
+            alert('Please describe the function you want to generate');
+            event.preventDefault();
+            return false;
+        }
+
+        // Show loading state
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
+        }
+
+        return true;
+    },
+
+    previewImages: function(event) {
+        const files = event.target.files;
+        const previewContainer = event.target.closest('.mb-3').querySelector('.image-preview');
+        
+        if (!previewContainer) {
+            const preview = document.createElement('div');
+            preview.className = 'image-preview mt-2';
+            event.target.closest('.mb-3').appendChild(preview);
+        }
+
+        const container = event.target.closest('.mb-3').querySelector('.image-preview');
+        container.innerHTML = '';
+
+        Array.from(files).forEach(file => {
+            if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    // Create or update image preview
-                    let preview = document.querySelector('.image-preview');
-                    if (!preview) {
-                        preview = document.createElement('div');
-                        preview.className = 'image-preview mt-3';
-                        input.parentElement.appendChild(preview);
-                    }
-
-                    preview.innerHTML = `
-                        <img src="${e.target.result}" class="img-fluid rounded" style="max-width: 200px; max-height: 200px;">
-                        <p class="text-muted mt-2">Preview: ${file.name}</p>
-                    `;
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'img-thumbnail me-2 mb-2';
+                    img.style.maxWidth = '100px';
+                    img.style.maxHeight = '100px';
+                    container.appendChild(img);
                 };
                 reader.readAsDataURL(file);
             }
         });
-    });
+    },
 
-    // Progress tracking for long operations
-    function trackProgress(operation, callback) {
-        const progressModal = document.getElementById('progressModal');
-        if (progressModal) {
-            const modal = new bootstrap.Modal(progressModal);
-            modal.show();
+    formatFileSize: function(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    },
 
-            // Simulate progress (in real implementation, use WebSockets or polling)
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += Math.random() * 20;
-                if (progress > 90) progress = 90;
-
-                const progressBar = progressModal.querySelector('.progress-bar');
-                if (progressBar) {
-                    progressBar.style.width = progress + '%';
-                }
-
-                if (progress >= 90) {
-                    clearInterval(interval);
-                    if (callback) callback();
-                }
-            }, 500);
-        }
-    }
-});
-
-// Utility functions
-function showAlert(message, type = 'info') {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-
-    const container = document.querySelector('.container');
-    if (container) {
+    showAlert: function(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        const container = document.querySelector('.container-fluid') || document.body;
         container.insertBefore(alertDiv, container.firstChild);
-
-        // Auto-dismiss
+        
+        // Auto dismiss after 5 seconds
         setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alertDiv);
-            bsAlert.close();
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
         }, 5000);
     }
-}
-
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 B';
-
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-}
-
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showAlert('Copied to clipboard!', 'success');
-    }).catch(err => {
-        console.error('Failed to copy: ', err);
-        showAlert('Failed to copy to clipboard', 'error');
-    });
-}
-
-// Initialize APK Editor
-const APKEditor = {
-    init: function() {
-        console.log('APK Editor initialized');
-        this.setupFileUpload();
-        this.setupFormValidation();
-    },
-    showAlert,
-    formatFileSize,
-    copyToClipboard
 };
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    APKEditor.init();
+});
+
+// Handle form submissions with progress
+document.addEventListener('submit', function(event) {
+    const form = event.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    if (submitBtn && !submitBtn.disabled) {
+        const originalText = submitBtn.innerHTML;
+        
+        // Add progress indicator
+        setTimeout(() => {
+            if (submitBtn.disabled) {
+                submitBtn.innerHTML = originalText.replace('Processing...', 'Processing...') || 
+                                    '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+            }
+        }, 100);
+    }
+});
