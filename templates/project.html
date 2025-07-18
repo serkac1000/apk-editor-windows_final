@@ -135,10 +135,10 @@
                             <h6><i data-feather="image"></i> Images</h6>
                             <div class="list-group">
                                 {% for image in resources.images[:10] %}
-                                <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='image', resource_path=image) }}" 
+                                <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='image', resource_path=image.path if image is mapping else image) }}" 
                                    class="list-group-item list-group-item-action">
                                     <i data-feather="file-image"></i>
-                                    {{ image.split('/')[-1] }}
+                                    {{ image.name if image is mapping else image.split('/')[-1] }}
                                 </a>
                                 {% endfor %}
                                 {% if resources.images|length > 10 %}
@@ -156,10 +156,10 @@
                             <h6><i data-feather="type"></i> Strings</h6>
                             <div class="list-group">
                                 {% for string in resources.strings[:10] %}
-                                <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='string', resource_path=string) }}" 
+                                <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='string', resource_path=string.path if string is mapping else string) }}" 
                                    class="list-group-item list-group-item-action">
                                     <i data-feather="file-text"></i>
-                                    {{ string.split('/')[-1] }}
+                                    {{ string.name if string is mapping else string.split('/')[-1] }}
                                 </a>
                                 {% endfor %}
                                 {% if resources.strings|length > 10 %}
@@ -177,10 +177,10 @@
                             <h6><i data-feather="layout"></i> Layouts</h6>
                             <div class="list-group">
                                 {% for layout in resources.layouts[:10] %}
-                                <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='layout', resource_path=layout) }}" 
+                                <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='layout', resource_path=layout.path if layout is mapping else layout) }}" 
                                    class="list-group-item list-group-item-action">
                                     <i data-feather="file-code"></i>
-                                    {{ layout.split('/')[-1] }}
+                                    {{ layout.name if layout is mapping else layout.split('/')[-1] }}
                                 </a>
                                 {% endfor %}
                                 {% if resources.layouts|length > 10 %}
@@ -317,112 +317,7 @@
             </div>
         </div>
 
-        <div class="row">
-            <!-- Images Section -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i data-feather="image"></i>
-                            Images ({{ resources.images|length }})
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {% if resources.images %}
-                            <div class="list-group list-group-flush">
-                                {% for image in resources.images %}
-                                <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='image', resource_path=image.path) }}" 
-                                   class="list-group-item list-group-item-action">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <i data-feather="image"></i>
-                                            <strong>{{ image.name }}</strong>
-                                        </div>
-                                        <small class="text-muted">{{ "%.1f"|format(image.size/1024) }} KB</small>
-                                    </div>
-                                </a>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="text-center py-3">
-                                <i data-feather="image" class="text-muted"></i>
-                                <p class="text-muted mb-0">No images found</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Strings Section -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i data-feather="type"></i>
-                            Strings ({{ resources.strings|length }})
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {% if resources.strings %}
-                            <div class="list-group list-group-flush">
-                                {% for string in resources.strings %}
-                                <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='string', resource_path=string.path) }}" 
-                                   class="list-group-item list-group-item-action">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <i data-feather="type"></i>
-                                            <strong>{{ string.name }}</strong>
-                                        </div>
-                                        <small class="text-muted">{{ "%.1f"|format(string.size/1024) }} KB</small>
-                                    </div>
-                                </a>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="text-center py-3">
-                                <i data-feather="type" class="text-muted"></i>
-                                <p class="text-muted mb-0">No string files found</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Layouts Section -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i data-feather="layout"></i>
-                            Layouts ({{ resources.layouts|length }})
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {% if resources.layouts %}
-                            <div class="list-group list-group-flush">
-                                {% for layout in resources.layouts %}
-                                <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='layout', resource_path=layout.path) }}" 
-                                   class="list-group-item list-group-item-action">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <i data-feather="layout"></i>
-                                            <strong>{{ layout.name }}</strong>
-                                        </div>
-                                        <small class="text-muted">{{ "%.1f"|format(layout.size/1024) }} KB</small>
-                                    </div>
-                                </a>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="text-center py-3">
-                                <i data-feather="layout" class="text-muted"></i>
-                                <p class="text-muted mb-0">No layout files found</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
+        
 
         <!-- Project Status -->
         <div class="card mt-4">

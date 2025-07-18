@@ -1,7 +1,7 @@
 // Main JavaScript for APK Editor
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]');
     tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
@@ -17,13 +17,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     this.value = '';
                     return;
                 }
-                
+
                 if (file.size > 100 * 1024 * 1024) { // 100MB
                     showAlert('File size must be less than 100MB', 'error');
                     this.value = '';
                     return;
                 }
-                
+
                 // Auto-fill project name if empty
                 const projectNameInput = document.getElementById('project_name');
                 if (projectNameInput && !projectNameInput.value) {
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-                
+
                 // Re-enable button after 30 seconds as fallback
                 setTimeout(() => {
                     submitBtn.disabled = false;
@@ -78,10 +78,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 const start = this.selectionStart;
                 const end = this.selectionEnd;
-                
+
                 // Insert tab character
                 this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
-                
+
                 // Move cursor
                 this.selectionStart = this.selectionEnd = start + 1;
             }
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         preview.className = 'image-preview mt-3';
                         input.parentElement.appendChild(preview);
                     }
-                    
+
                     preview.innerHTML = `
                         <img src="${e.target.result}" class="img-fluid rounded" style="max-width: 200px; max-height: 200px;">
                         <p class="text-muted mt-2">Preview: ${file.name}</p>
@@ -130,18 +130,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (progressModal) {
             const modal = new bootstrap.Modal(progressModal);
             modal.show();
-            
+
             // Simulate progress (in real implementation, use WebSockets or polling)
             let progress = 0;
             const interval = setInterval(() => {
                 progress += Math.random() * 20;
                 if (progress > 90) progress = 90;
-                
+
                 const progressBar = progressModal.querySelector('.progress-bar');
                 if (progressBar) {
                     progressBar.style.width = progress + '%';
                 }
-                
+
                 if (progress >= 90) {
                     clearInterval(interval);
                     if (callback) callback();
@@ -159,11 +159,11 @@ function showAlert(message, type = 'info') {
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-    
+
     const container = document.querySelector('.container');
     if (container) {
         container.insertBefore(alertDiv, container.firstChild);
-        
+
         // Auto-dismiss
         setTimeout(() => {
             const bsAlert = new bootstrap.Alert(alertDiv);
@@ -174,11 +174,11 @@ function showAlert(message, type = 'info') {
 
 function formatFileSize(bytes) {
     if (bytes === 0) return '0 B';
-    
+
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
@@ -191,11 +191,12 @@ function copyToClipboard(text) {
     });
 }
 
-// Export functions for global use
-window.APKEditor = {
+// Initialize APK Editor
+const APKEditor = {
     init: function() {
         console.log('APK Editor initialized');
-        // Initialize any required components here
+        this.setupFileUpload();
+        this.setupFormValidation();
     },
     showAlert,
     formatFileSize,
