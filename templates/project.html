@@ -67,54 +67,125 @@
             </div>
         </div>
 
-        <!-- APK Preview Section -->
+        <!-- APK Preview & GUI Modification Section -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">
                     <i data-feather="smartphone"></i>
-                    APK Preview & Modification
+                    APK Preview & GUI Modification
                 </h5>
             </div>
             <div class="card-body">
-                <!-- GUI Modification Form -->
-                <form method="POST" action="{{ url_for('modify_gui', project_id=project.id) }}" enctype="multipart/form-data">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="gui_changes" class="form-label">Describe GUI Changes</label>
-                                <textarea class="form-control" id="gui_changes" name="gui_changes" rows="4" 
-                                    placeholder="Example: Change control knob color to blue, make D-pad bigger, add glow effect..."></textarea>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="color_scheme" class="form-label">Color Scheme</label>
-                                <select class="form-select" id="color_scheme" name="color_scheme">
-                                    <option value="">Keep Current</option>
-                                    <option value="blue">Blue Theme</option>
-                                    <option value="green">Green Theme</option>
-                                    <option value="red">Red Theme</option>
-                                    <option value="purple">Purple Theme</option>
-                                    <option value="orange">Orange Theme</option>
-                                    <option value="dark">Dark Theme</option>
-                                    <option value="light">Light Theme</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="reference_images" class="form-label">Reference Images (Optional)</label>
-                                <input type="file" class="form-control" id="reference_images" name="reference_images" 
-                                    accept="image/*" multiple>
-                                <div class="form-text">Upload reference images for design inspiration</div>
+                <div class="row">
+                    <!-- Phone Preview -->
+                    <div class="col-md-4">
+                        <div class="smartphone-preview">
+                            <div class="phone-frame">
+                                <div class="phone-screen">
+                                    <div class="status-bar">
+                                        <span class="time">9:41</span>
+                                        <span class="battery">100%</span>
+                                    </div>
+                                    <div class="app-content app-controller-bg">
+                                        <div class="app-header">
+                                            <h6 class="app-title">{{ project.name }}</h6>
+                                            <div class="connection-status">
+                                                <span class="status-dot"></span>
+                                                <span class="status-text">Not Connected</span>
+                                            </div>
+                                        </div>
+                                        <div class="app-body">
+                                            <div class="controller-grid">
+                                                <div class="control-section">
+                                                    <div class="control-knob large" title="Main Volume Control"></div>
+                                                    <div class="control-label">Main</div>
+                                                    <div class="control-desc">Volume Control</div>
+                                                </div>
+                                                <div class="control-section">
+                                                    <div class="directional-pad" title="Navigation Controls">
+                                                        <div class="dpad-center">
+                                                            <div class="dpad-up" title="Navigate Up"></div>
+                                                            <div class="dpad-left" title="Navigate Left"></div>
+                                                            <div class="dpad-right" title="Navigate Right"></div>
+                                                            <div class="dpad-down" title="Navigate Down"></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="control-label">D-Pad</div>
+                                                    <div class="control-desc">Navigation</div>
+                                                </div>
+                                                <div class="control-section">
+                                                    <div class="control-knob medium" title="Volume Adjustment"></div>
+                                                    <div class="control-label">Vol</div>
+                                                    <div class="control-desc">Audio Level</div>
+                                                </div>
+                                                <div class="control-section">
+                                                    <div class="control-knob medium" title="Frequency Tuning"></div>
+                                                    <div class="control-label">Tune</div>
+                                                    <div class="control-desc">Frequency</div>
+                                                </div>
+                                            </div>
+                                            <div class="toolbar">
+                                                <div class="toolbar-icons">
+                                                    <i data-feather="settings" title="Settings"></i>
+                                                    <i data-feather="wifi" title="WiFi Connection"></i>
+                                                    <i data-feather="bluetooth" title="Bluetooth"></i>
+                                                    <i data-feather="volume-2" title="Audio Settings"></i>
+                                                    <i data-feather="power" title="Power Control"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary">
-                            <i data-feather="edit"></i>
-                            Apply GUI Changes
-                        </button>
+
+                    <!-- GUI Modification Form -->
+                    <div class="col-md-8">
+                        <form method="POST" action="{{ url_for('modify_gui', project_id=project.id) }}" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label for="gui_changes" class="form-label">Describe GUI Changes</label>
+                                        <textarea class="form-control" id="gui_changes" name="gui_changes" rows="4" 
+                                            placeholder="Example: Change control knob color to blue, make D-pad bigger, add glow effect to controls, change connection status..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="color_scheme" class="form-label">Color Scheme</label>
+                                        <select class="form-select" id="color_scheme" name="color_scheme">
+                                            <option value="">Keep Current</option>
+                                            <option value="blue">Blue Theme</option>
+                                            <option value="green">Green Theme</option>
+                                            <option value="red">Red Theme</option>
+                                            <option value="purple">Purple Theme</option>
+                                            <option value="orange">Orange Theme</option>
+                                            <option value="dark">Dark Theme</option>
+                                            <option value="light">Light Theme</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="reference_images" class="form-label">Reference Images (Optional)</label>
+                                        <input type="file" class="form-control" id="reference_images" name="reference_images" 
+                                            accept="image/*" multiple>
+                                        <div class="form-text">Upload reference images for design inspiration</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary">
+                                    <i data-feather="edit"></i>
+                                    Apply GUI Changes
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
 
@@ -179,7 +250,7 @@
                                 {% for layout in resources.layouts[:10] %}
                                 <a href="{{ url_for('edit_resource', project_id=project.id, resource_type='layout', resource_path=layout.path if layout is mapping else layout) }}" 
                                    class="list-group-item list-group-item-action">
-                                    <i data-feather="file-code"></i>
+                                    <i data-feather="file"></i>
                                     {{ layout.name if layout is mapping else layout.split('/')[-1] }}
                                 </a>
                                 {% endfor %}
@@ -201,123 +272,6 @@
                 {% endif %}
             </div>
         </div>
-    </div>
-</div>
-
-<script>
-    feather.replace();
-</script>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="smartphone-preview">
-                            <div class="phone-frame">
-                                <div class="phone-screen">
-                                    <div class="status-bar">
-                                        <span class="time">9:41</span>
-                                        <span class="battery">100%</span>
-                                    </div>
-                                    <div class="app-content app-controller-bg">
-                                        <div class="app-header">
-                                            <h6 class="app-title">APK Editor Controller</h6>
-                                            <div class="connection-status">
-                                                <span class="status-dot"></span>
-                                                <span class="status-text">Not Connected</span>
-                                            </div>
-                                        </div>
-                                        <div class="app-body">
-                                            <div class="controller-grid">
-                                                <div class="control-section">
-                                                    <div class="control-knob large" title="Main Volume Control"></div>
-                                                    <div class="control-label">Main</div>
-                                                    <div class="control-desc">Volume Control</div>
-                                                </div>
-                                                <div class="control-section">
-                                                    <div class="directional-pad" title="Navigation Controls">
-                                                        <div class="dpad-center">
-                                                            <div class="dpad-up" title="Navigate Up"></div>
-                                                            <div class="dpad-left" title="Navigate Left"></div>
-                                                            <div class="dpad-right" title="Navigate Right"></div>
-                                                            <div class="dpad-down" title="Navigate Down"></div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="control-label">D-Pad</div>
-                                                    <div class="control-desc">Navigation</div>
-                                                </div>
-                                                <div class="control-section">
-                                                    <div class="control-knob medium" title="Volume Adjustment"></div>
-                                                    <div class="control-label">Vol</div>
-                                                    <div class="control-desc">Audio Level</div>
-                                                </div>
-                                                <div class="control-section">
-                                                    <div class="control-knob medium" title="Frequency Tuning"></div>
-                                                    <div class="control-label">Tune</div>
-                                                    <div class="control-desc">Frequency</div>
-                                                </div>
-                                            </div>
-                                            <div class="toolbar">
-                                                <div class="toolbar-icons">
-                                                    <i data-feather="settings" title="Settings"></i>
-                                                    <i data-feather="wifi" title="WiFi Connection"></i>
-                                                    <i data-feather="bluetooth" title="Bluetooth"></i>
-                                                    <i data-feather="volume-2" title="Audio Settings"></i>
-                                                    <i data-feather="power" title="Power Control"></i>
-                                                </div>
-                                            </div>
-                                            <div class="control-descriptions">
-                                                <div class="desc-item">
-                                                    <strong>Main:</strong> Primary volume control knob
-                                                </div>
-                                                <div class="desc-item">
-                                                    <strong>D-Pad:</strong> Navigate up/down/left/right
-                                                </div>
-                                                <div class="desc-item">
-                                                    <strong>Vol:</strong> Secondary volume adjustment
-                                                </div>
-                                                <div class="desc-item">
-                                                    <strong>Tune:</strong> Frequency tuning control
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-8">
-                        <form method="POST" action="{{ url_for('modify_gui', project_id=project.id) }}" enctype="multipart/form-data">
-                            <div class="mb-3">
-                                <label for="gui_changes" class="form-label">Describe GUI Changes</label>
-                                <textarea class="form-control" id="gui_changes" name="gui_changes" rows="4" placeholder="Example: Change the main knob to green, make the D-pad bigger, add blue glow to controls, change connection status..."></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="reference_images" class="form-label">Reference Images (Optional)</label>
-                                <input type="file" class="form-control" id="reference_images" name="reference_images" accept="image/*" multiple>
-                                <div class="form-text">Upload images showing how you want the interface to look</div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="color_scheme" class="form-label">Color Scheme</label>
-                                <select class="form-select" id="color_scheme" name="color_scheme">
-                                    <option value="">Keep current colors</option>
-                                    <option value="blue">Blue theme</option>
-                                    <option value="green">Green theme</option>
-                                    <option value="red">Red theme</option>
-                                    <option value="purple">Purple theme</option>
-                                    <option value="orange">Orange theme</option>
-                                    <option value="dark">Dark theme</option>
-                                    <option value="light">Light theme</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">
-                                <i data-feather="edit"></i>
-                                Apply GUI Changes
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        
 
         <!-- Project Status -->
         <div class="card mt-4">
