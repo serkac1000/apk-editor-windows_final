@@ -1,4 +1,3 @@
-
 @echo off
 echo APKTool Installer for Windows
 echo =============================

@@ -46,16 +46,21 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_apk():
     """Handle APK file upload"""
+    logging.info("APK upload request received")
+    
     if 'apk_file' not in request.files:
+        logging.warning("No file part in the request")
         flash('No file selected', 'error')
         return redirect(url_for('index'))
 
     file = request.files['apk_file']
     if file.filename == '':
+        logging.warning("Empty filename submitted")
         flash('No file selected', 'error')
         return redirect(url_for('index'))
 
     if not file.filename.lower().endswith('.apk'):
+        logging.warning(f"Invalid file extension: {file.filename}")
         flash('Please upload an APK file', 'error')
         return redirect(url_for('index'))
 
@@ -63,19 +68,44 @@ def upload_apk():
         # Generate unique project ID
         project_id = str(uuid.uuid4())
         filename = secure_filename(file.filename)
+        logging.info(f"Processing APK upload: {filename} (Project ID: {project_id})")
 
+        # Ensure upload directory exists
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        
         # Save uploaded file
         upload_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{project_id}_{filename}")
         file.save(upload_path)
+        logging.info(f"APK saved to: {upload_path}")
+        
+        # Verify file was saved correctly
+        if not os.path.exists(upload_path):
+            logging.error(f"File was not saved correctly: {upload_path}")
+            flash('Error saving uploaded file', 'error')
+            return redirect(url_for('index'))
+            
+        # Get file size for logging
+        file_size = os.path.getsize(upload_path)
+        logging.info(f"Uploaded file size: {file_size} bytes")
+        
+        # Basic file validation
+        if not is_valid_apk(upload_path):
+            logging.warning(f"Invalid APK format: {filename}")
+            flash('Invalid APK file format', 'error')
+            os.remove(upload_path)
+            return redirect(url_for('index'))
 
         # Decompile APK
         project_name = request.form.get('project_name', filename.replace('.apk', ''))
+        logging.info(f"Decompiling APK with project name: {project_name}")
         success = apk_editor.decompile_apk(upload_path, project_id, project_name)
 
         if success:
+            logging.info(f"APK decompiled successfully: {project_id}")
             flash(f'APK "{filename}" uploaded and decompiled successfully!', 'success')
             return redirect(url_for('project_view', project_id=project_id))
         else:
+            logging.error(f"Failed to decompile APK: {filename}")
             flash('Failed to decompile APK. Please check if it\'s a valid APK file.', 'error')
             return redirect(url_for('index'))
 
@@ -94,11 +124,15 @@ def project_view(project_id):
 
     # Get project resources
     resources = apk_editor.get_project_resources(project_id)
+    
+    # Get APK preview data
+    app_preview = apk_editor.get_app_preview(project_id)
 
     return render_template('project.html', 
                          project=project, 
                          resources=resources, 
-                         project_id=project_id)
+                         project_id=project_id,
+                         app_preview=app_preview)
 
 @app.route('/edit/<project_id>/<resource_type>/<path:resource_path>')
 def edit_resource(project_id, resource_type, resource_path):
@@ -400,6 +434,26 @@ def generate_fallback_code(prompt):
 
     return code_template
 
+def is_valid_apk(file_path):
+    """Basic APK file validation"""
+    try:
+        # Check file size (not empty, not too large)
+        file_size = os.path.getsize(file_path)
+        if file_size < 1000 or file_size > 100 * 1024 * 1024:  # 1KB to 100MB
+            return False
+        
+        # Check file signature (APK files are ZIP files)
+        with open(file_path, 'rb') as f:
+            header = f.read(4)
+            # ZIP file signature: PK (0x504B)
+            if header[:2] != b'PK':
+                return False
+        
+        return True
+    except Exception as e:
+        logging.error(f"APK validation error: {str(e)}")
+        return False
+
 def generate_button_template(prompt):
     """Generate button-related Android code"""
     return """
@@ -432,6 +486,26 @@ public void onGeneratedButtonClick(View view) {
     <stroke android:width="1dp" android:color="#0056b3" />
 </shape>
 """
+
+def is_valid_apk(file_path):
+    """Basic APK file validation"""
+    try:
+        # Check file size (not empty, not too large)
+        file_size = os.path.getsize(file_path)
+        if file_size < 1000 or file_size > 100 * 1024 * 1024:  # 1KB to 100MB
+            return False
+        
+        # Check file signature (APK files are ZIP files)
+        with open(file_path, 'rb') as f:
+            header = f.read(4)
+            # ZIP file signature: PK (0x504B)
+            if header[:2] != b'PK':
+                return False
+        
+        return True
+    except Exception as e:
+        logging.error(f"APK validation error: {str(e)}")
+        return False
 
 @app.route('/test_ai', methods=['POST'])
 def test_ai():
@@ -625,6 +699,30 @@ public class GeneratedHelper {
 // Usage example
 GeneratedHelper.executeGeneratedFunction(this);
 """
+
+@app.route('/refresh_preview/<project_id>')
+def refresh_preview(project_id):
+    """Refresh APK preview"""
+    try:
+        project = file_manager.get_project(project_id)
+        if not project:
+            flash('Project not found', 'error')
+            return redirect(url_for('index'))
+        
+        # Force regenerate preview
+        preview_data = apk_editor.generate_app_preview(project_id)
+        
+        if preview_data:
+            flash('APK preview refreshed successfully!', 'success')
+        else:
+            flash('Failed to refresh APK preview', 'error')
+        
+        return redirect(url_for('project_view', project_id=project_id))
+        
+    except Exception as e:
+        logging.error(f"Preview refresh error: {str(e)}")
+        flash(f'Preview refresh failed: {str(e)}', 'error')
+        return redirect(url_for('project_view', project_id=project_id))
 
 @app.route('/download_function/<function_id>')
 def download_function(function_id):
@@ -865,6 +963,16 @@ def apply_gui_modifications(project_id, modifications):
 def too_large(e):
     flash('File too large. Maximum size is 100MB.', 'error')
     return redirect(url_for('index'))
+
+@app.route('/favicon.ico')
+def favicon():
+    """Serve favicon to prevent 404 errors"""
+    return app.send_static_file('favicon.ico')
+
+@app.route('/.well-known/appspecific/com.chrome.devtools.json')
+def chrome_devtools():
+    """Handle Chrome DevTools requests"""
+    return jsonify({})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

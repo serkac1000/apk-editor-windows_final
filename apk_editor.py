@@ -5,6 +5,7 @@ import shutil
 from datetime import datetime
 from utils.apktool import APKTool
 from utils.file_manager import FileManager
+from utils.apk_preview import APKPreview
 
 class APKEditor:
     def __init__(self, projects_folder, temp_folder):
@@ -12,6 +13,7 @@ class APKEditor:
         self.temp_folder = temp_folder
         self.apktool = APKTool()
         self.file_manager = FileManager(projects_folder)
+        self.apk_preview = APKPreview(temp_folder)
         
     def decompile_apk(self, apk_path, project_id, project_name):
         """Decompile APK and create project"""
@@ -238,3 +240,101 @@ class APKEditor:
             return compiled_path
         
         return None
+        
+    def generate_app_preview(self, project_id):
+        """Generate preview of the APK GUI"""
+        try:
+            project_dir = os.path.join(self.projects_folder, project_id)
+            decompiled_dir = os.path.join(project_dir, 'decompiled')
+            original_apk = os.path.join(project_dir, 'original.apk')
+            
+            # Check if files exist
+            if not os.path.exists(decompiled_dir) or not os.path.exists(original_apk):
+                logging.error(f"Required files not found for preview generation: {project_id}")
+                return None
+            
+            # Generate preview
+            preview_data = self.apk_preview.generate_app_preview(project_id, decompiled_dir, original_apk)
+            
+            # Save preview data to project metadata
+            if preview_data:
+                metadata_path = os.path.join(project_dir, 'metadata.json')
+                if os.path.exists(metadata_path):
+                    with open(metadata_path, 'r') as f:
+                        metadata = json.load(f)
+                    
+                    # Add preview data paths
+                    metadata['preview'] = {
+                        'icon_path': preview_data['icon'],
+                        'app_name': preview_data['name'],
+                        'layout_path': preview_data['layout'],
+                        'generated_at': datetime.now().isoformat()
+                    }
+                    
+                    # Save updated metadata
+                    with open(metadata_path, 'w') as f:
+                        json.dump(metadata, f, indent=2)
+            
+            return preview_data
+            
+        except Exception as e:
+            logging.error(f"Error generating app preview: {str(e)}")
+            return None
+    
+    def get_app_preview(self, project_id):
+        """Get APK preview data"""
+        try:
+            project_dir = os.path.join(self.projects_folder, project_id)
+            metadata_path = os.path.join(project_dir, 'metadata.json')
+            
+            # Check if preview already exists in metadata
+            if os.path.exists(metadata_path):
+                with open(metadata_path, 'r') as f:
+                    metadata = json.load(f)
+                
+                if 'preview' in metadata:
+                    preview = metadata['preview']
+                    
+                    # Verify layout file exists (icon is optional)
+                    layout_exists = preview.get('layout_path') and os.path.exists(preview['layout_path'])
+                    
+                    if layout_exists:
+                        # Convert layout to base64 for embedding in HTML
+                        layout_base64 = self.apk_preview.get_image_base64(preview['layout_path'])
+                        
+                        # Icon is optional - only convert if it exists
+                        icon_base64 = None
+                        if preview.get('icon_path') and os.path.exists(preview['icon_path']):
+                            icon_base64 = self.apk_preview.get_image_base64(preview['icon_path'])
+                        
+                        return {
+                            'app_name': preview.get('app_name', 'Unknown App'),
+                            'icon_base64': icon_base64,
+                            'layout_base64': layout_base64
+                        }
+            
+            # If no preview exists or files are missing, generate new preview
+            preview_data = self.generate_app_preview(project_id)
+            
+            if preview_data:
+                # Layout is required
+                layout_base64 = None
+                if preview_data.get('layout') and os.path.exists(preview_data['layout']):
+                    layout_base64 = self.apk_preview.get_image_base64(preview_data['layout'])
+                
+                # Icon is optional
+                icon_base64 = None
+                if preview_data.get('icon') and os.path.exists(preview_data['icon']):
+                    icon_base64 = self.apk_preview.get_image_base64(preview_data['icon'])
+                
+                return {
+                    'app_name': preview_data['name'],
+                    'icon_base64': icon_base64,
+                    'layout_base64': layout_base64
+                }
+            
+            return None
+            
+        except Exception as e:
+            logging.error(f"Error getting app preview: {str(e)}")
+            return None

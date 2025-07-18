@@ -1,4 +1,19 @@
 @echo off
+echo ===============================================
+echo APK Editor Setup for Windows
+echo ===============================================
+echo.
+echo IMPORTANT: If your antivirus flags this as a virus,
+echo it's a FALSE POSITIVE. APK editors are flagged because
+echo they modify executable files (APKs).
+echo.
+echo Please add this folder to your antivirus exclusions:
+echo %CD%
+echo.
+echo See ANTIVIRUS_GUIDE.md for detailed instructions.
+echo.
+pause
+echo.
 echo Setting up APK Editor for Windows...
 echo.
 

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign APK - APK Editor</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i data-feather="package"></i>
+                APK Editor
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('project_view', project_id=project_id) }}">
+                    <i data-feather="arrow-left"></i>
+                    Back to Project
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Sign APK Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="shield"></i>
+                    Sign APK
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Project Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Project Name:</th>
+                                <td>{{ project.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Original APK:</th>
+                                <td>{{ project.original_apk }}</td>
+                            </tr>
+                            <tr>
+                                <th>Status:</th>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if project.has_compiled else 'warning' }}">
+                                        {{ 'Compiled' if project.has_compiled else 'Not Compiled' }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Signing Options</h6>
+                        <form method="POST" action="{{ url_for('sign_apk', project_id=project_id) }}">
+                            <div class="mb-3">
+                                <label for="keystore" class="form-label">Keystore</label>
+                                <select class="form-select" id="keystore" name="keystore">
+                                    <option value="debug">Debug Keystore (Default)</option>
+                                    {% for keystore in keystores %}
+                                    <option value="{{ keystore.path }}">{{ keystore.name }}</option>
+                                    {% endfor %}
+                                    <option value="new">Create New Keystore...</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="alias" class="form-label">Key Alias</label>
+                                <input type="text" class="form-control" id="alias" name="alias" value="androiddebugkey">
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Keystore Password</label>
+                                <input type="password" class="form-control" id="password" name="password" value="android">
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary">
+                                    <i data-feather="shield"></i>
+                                    Sign APK
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Keystore Card (Initially Hidden) -->
+        <div class="card mb-4" id="createKeystoreCard" style="display: none;">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="key"></i>
+                    Create New Keystore
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('create_keystore', project_id=project_id) }}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="keystore_name" class="form-label">Keystore Name</label>
+                                <input type="text" class="form-control" id="keystore_name" name="keystore_name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="key_alias" class="form-label">Key Alias</label>
+                                <input type="text" class="form-control" id="key_alias" name="key_alias" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="key_password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="key_password" name="key_password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="validity" class="form-label">Validity (Years)</label>
+                                <input type="number" class="form-control" id="validity" name="validity" value="25" min="1" max="100">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="common_name" class="form-label">Common Name (CN)</label>
+                                <input type="text" class="form-control" id="common_name" name="common_name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="org_unit" class="form-label">Organizational Unit (OU)</label>
+                                <input type="text" class="form-control" id="org_unit" name="org_unit" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="org" class="form-label">Organization (O)</label>
+                                <input type="text" class="form-control" id="org" name="org" required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="locality" class="form-label">Locality (L)</label>
+                                        <input type="text" class="form-control" id="locality" name="locality" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="state" class="form-label">State (ST)</label>
+                                        <input type="text" class="form-control" id="state" name="state" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="country" class="form-label">Country (C)</label>
+                                        <input type="text" class="form-control" id="country" name="country" required maxlength="2">
+                                        <small class="form-text text-muted">2-letter code</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success">
+                            <i data-feather="key"></i>
+                            Create Keystore
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancelCreateKeystore">
+                            <i data-feather="x"></i>
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Signing Information Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="info"></i>
+                    About APK Signing
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Why Sign APKs?</h6>
+                        <p>Android requires all APKs to be digitally signed with a certificate before installation. Signing your APK:</p>
+                        <ul>
+                            <li>Ensures the app's authenticity</li>
+                            <li>Establishes the app's identity for updates</li>
+                            <li>Enables app sharing between apps from the same developer</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Signing Options</h6>
+                        <p><strong>Debug Keystore:</strong> For testing only. Not recommended for distribution.</p>
+                        <p><strong>Release Keystore:</strong> Create a new keystore for production apps. Keep this keystore secure and backed up.</p>
+                        <p><strong>Key Validity:</strong> The default 25 years is recommended for production apps.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        feather.replace();
+        
+        // Show/hide create keystore form
+        document.getElementById('keystore').addEventListener('change', function() {
+            if (this.value === 'new') {
+                document.getElementById('createKeystoreCard').style.display = 'block';
+            } else {
+                document.getElementById('createKeystoreCard').style.display = 'none';
+            }
+        });
+        
+        // Cancel button for create keystore form
+        document.getElementById('cancelCreateKeystore').addEventListener('click', function() {
+            document.getElementById('createKeystoreCard').style.display = 'none';
+            document.getElementById('keystore').value = 'debug';
+        });
+    </script>
+</body>
+</html>

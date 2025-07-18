@@ -2,6 +2,33 @@
 
 A web-based APK editor application built with Flask that allows users to upload, modify, and download APK files through a browser interface.
 
+## ⚠️ IMPORTANT: Antivirus False Positive Notice
+
+**This software may be flagged by antivirus programs as a potential threat. This is a FALSE POSITIVE.**
+
+### Why This Happens:
+- APK editors modify executable files (APK files)
+- Downloads external development tools (APKTool)
+- Creates temporary files and directories
+- Performs operations similar to legitimate development tools
+
+### This Tool Is Safe When:
+- ✅ Downloaded from official/trusted sources
+- ✅ Used for legitimate app development
+- ✅ Used for educational purposes
+- ✅ Source code is available for inspection
+
+### How to Fix Antivirus Warnings:
+1. **Add exclusions** to your antivirus software
+2. **See ANTIVIRUS_GUIDE.md** for detailed instructions
+3. **Use start_apk_editor.bat** for guided startup
+4. **Verify the source code** (it's open source)
+
+### DO NOT USE for:
+- ❌ Modifying apps you don't own
+- ❌ Bypassing app security measures  
+- ❌ Any malicious purposes
+
 ## Features
 
 - **Upload APK Files**: Upload APK files with custom project naming

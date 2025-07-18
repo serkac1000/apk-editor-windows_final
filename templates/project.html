@@ -55,12 +55,20 @@
                                 <i data-feather="package"></i>
                                 Compile APK
                             </a>
-                            {% if project.has_compiled or project.has_signed %}
+                            <a href="{{ url_for('sign_apk_page', project_id=project.id) }}" class="btn btn-primary">
+                                <i data-feather="shield"></i>
+                                Sign APK
+                            </a>
+                            <div class="btn-group">
                                 <a href="{{ url_for('download_apk', project_id=project.id) }}" class="btn btn-outline-success">
                                     <i data-feather="download"></i>
-                                    Download
+                                    Download APK
                                 </a>
-                            {% endif %}
+                                <a href="{{ url_for('download_apk', project_id=project.id, format='apk+') }}" class="btn btn-outline-info">
+                                    <i data-feather="download-cloud"></i>
+                                    Download APK+
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -79,62 +87,64 @@
                 <div class="row">
                     <!-- Phone Preview -->
                     <div class="col-md-4">
-                        <div class="smartphone-preview">
-                            <div class="phone-frame">
-                                <div class="phone-screen">
+                        <div class="smartphone-preview" style="max-width: 400px; min-width: 340px;">
+                            <div class="phone-frame" style="width: 340px; height: 680px;">
+                                <div class="phone-screen" style="height: 100%;">
                                     <div class="status-bar">
                                         <span class="time">9:41</span>
                                         <span class="battery">100%</span>
                                     </div>
+                                    {% if app_preview %}
+                                    <!-- Real APK Preview -->
+                                    <div class="app-content">
+                                        <div class="app-header">
+                                            <div class="app-icon-title">
+                                                {% if app_preview.icon_base64 %}
+                                                <img src="data:image/png;base64,{{ app_preview.icon_base64 }}" class="app-icon" alt="App Icon">
+                                                {% else %}
+                                                <div class="app-icon-placeholder">
+                                                    <i data-feather="package" style="width: 24px; height: 24px; color: #fff;"></i>
+                                                </div>
+                                                {% endif %}
+                                                <h6 class="app-title">{{ app_preview.app_name }}</h6>
+                                                <a href="{{ url_for('refresh_preview', project_id=project_id) }}" class="refresh-preview-btn" title="Refresh APK Preview">
+                                                    <i data-feather="refresh-cw" style="width: 14px; height: 14px;"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="app-body">
+                                            {% if app_preview.layout_base64 %}
+                                            <div class="app-layout-preview">
+                                                <img src="data:image/png;base64,{{ app_preview.layout_base64 }}" class="app-layout" alt="App Layout">
+                                            </div>
+                                            {% else %}
+                                            <div class="app-layout-placeholder">
+                                                <i data-feather="layout" style="width: 32px; height: 32px; margin-bottom: 10px;"></i>
+                                                <p>No layout preview available</p>
+                                                <small class="text-muted">You can still edit resources below</small>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <!-- Fallback Preview -->
                                     <div class="app-content app-controller-bg">
                                         <div class="app-header">
                                             <h6 class="app-title">{{ project.name }}</h6>
                                             <div class="connection-status">
                                                 <span class="status-dot"></span>
-                                                <span class="status-text">Not Connected</span>
+                                                <span class="status-text">Preview Not Available</span>
                                             </div>
                                         </div>
                                         <div class="app-body">
-                                            <div class="controller-grid">
-                                                <div class="control-section">
-                                                    <div class="control-knob large" title="Main Volume Control"></div>
-                                                    <div class="control-label">Main</div>
-                                                    <div class="control-desc">Volume Control</div>
-                                                </div>
-                                                <div class="control-section">
-                                                    <div class="directional-pad" title="Navigation Controls">
-                                                        <div class="dpad-center">
-                                                            <div class="dpad-up" title="Navigate Up"></div>
-                                                            <div class="dpad-left" title="Navigate Left"></div>
-                                                            <div class="dpad-right" title="Navigate Right"></div>
-                                                            <div class="dpad-down" title="Navigate Down"></div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="control-label">D-Pad</div>
-                                                    <div class="control-desc">Navigation</div>
-                                                </div>
-                                                <div class="control-section">
-                                                    <div class="control-knob medium" title="Volume Adjustment"></div>
-                                                    <div class="control-label">Vol</div>
-                                                    <div class="control-desc">Audio Level</div>
-                                                </div>
-                                                <div class="control-section">
-                                                    <div class="control-knob medium" title="Frequency Tuning"></div>
-                                                    <div class="control-label">Tune</div>
-                                                    <div class="control-desc">Frequency</div>
-                                                </div>
-                                            </div>
-                                            <div class="toolbar">
-                                                <div class="toolbar-icons">
-                                                    <i data-feather="settings" title="Settings"></i>
-                                                    <i data-feather="wifi" title="WiFi Connection"></i>
-                                                    <i data-feather="bluetooth" title="Bluetooth"></i>
-                                                    <i data-feather="volume-2" title="Audio Settings"></i>
-                                                    <i data-feather="power" title="Power Control"></i>
-                                                </div>
+                                            <div class="app-preview-message">
+                                                <i data-feather="smartphone" style="width: 48px; height: 48px; margin-bottom: 15px;"></i>
+                                                <p>APK GUI preview could not be generated.</p>
+                                                <p class="small text-muted">Edit resources below to modify the app.</p>
                                             </div>
                                         </div>
                                     </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
