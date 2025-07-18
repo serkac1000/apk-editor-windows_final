@@ -5,6 +5,7 @@ const APKEditor = {
         console.log('APK Editor initialized');
         this.setupEventListeners();
         this.initializeFeatherIcons();
+        this.setupAIFeatures();
     },
 
     setupEventListeners: function() {
@@ -187,6 +188,53 @@ const APKEditor = {
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    },
+
+    setupAIFeatures: function() {
+        // Add test AI button if AI configuration section exists
+        const aiConfigSection = document.querySelector('.card-header h5:contains("AI Configuration")');
+        if (aiConfigSection) {
+            const testButton = document.createElement('button');
+            testButton.className = 'btn btn-sm btn-outline-primary ms-2';
+            testButton.innerHTML = '<i data-feather="zap"></i> Test AI';
+            testButton.onclick = this.testAI;
+            
+            const cardHeader = aiConfigSection.closest('.card-header');
+            if (cardHeader) {
+                cardHeader.appendChild(testButton);
+            }
+        }
+    },
+
+    testAI: function() {
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Testing...';
+        
+        fetch('/test_ai', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                APKEditor.showAlert(`AI Test Successful: ${data.message}`, 'success');
+            } else {
+                APKEditor.showAlert(`AI Test Failed: ${data.message}`, 'danger');
+            }
+        })
+        .catch(error => {
+            APKEditor.showAlert(`AI Test Error: ${error.message}`, 'danger');
+        })
+        .finally(() => {
+            button.disabled = false;
+            button.innerHTML = originalText;
+            feather.replace();
+        });
     },
 
     showAlert: function(message, type = 'info') {

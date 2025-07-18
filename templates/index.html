@@ -82,6 +82,42 @@
                                 <i data-feather="zap"></i>
                                 Generate Function
                             </button>
+
+                    <!-- AI Configuration Section -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i data-feather="settings"></i>
+                                AI Configuration
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <i data-feather="info"></i>
+                                <strong>Enable AI-Powered Code Generation</strong><br>
+                                To use advanced AI features with Google Gemini, you need to set up your API key.
+                                <br><br>
+                                <small>
+                                    1. Get your free API key from <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
+                                    2. Add it to your environment variables as <code>GEMINI_API_KEY</code><br>
+                                    3. Restart the application to enable AI features
+                                </small>
+                            </div>
+                            {% if not gemini_enabled %}
+                            <div class="alert alert-warning">
+                                <i data-feather="alert-triangle"></i>
+                                AI features are currently using fallback mode. Set GEMINI_API_KEY for full functionality.
+                            </div>
+                            {% else %}
+                            <div class="alert alert-success">
+                                <i data-feather="check-circle"></i>
+                                AI features are enabled and ready to use!
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+
                         </form>
                     </div>
                 </div>

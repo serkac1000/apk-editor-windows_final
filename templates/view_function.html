@@ -19,6 +19,113 @@
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="{{ url_for('index') }}">
                     <i data-feather="arrow-left"></i>
+                    Back to Projects
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Generated Function Display -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i data-feather="zap"></i>
+                        AI Generated Code
+                    </h5>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard()">
+                            <i data-feather="copy"></i>
+                            Copy Code
+                        </button>
+                        <a href="{{ url_for('download_function', function_id=function_id) }}" class="btn btn-sm btn-success">
+                            <i data-feather="download"></i>
+                            Download
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <pre id="function-code" class="bg-dark text-light p-3 rounded"><code>{{ function_code }}</code></pre>
+            </div>
+        </div>
+
+        <!-- Usage Instructions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="info"></i>
+                    How to Use This Code
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6><i data-feather="file-text"></i> XML Layouts</h6>
+                        <p class="text-muted">Add XML code to your layout files in <code>res/layout/</code></p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i data-feather="code"></i> Java/Kotlin Code</h6>
+                        <p class="text-muted">Integrate Java/Kotlin code into your Activity or Fragment classes</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i data-feather="palette"></i> Resources</h6>
+                        <p class="text-muted">Add colors and strings to your <code>res/values/</code> files</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        feather.replace();
+        
+        function copyToClipboard() {
+            const codeElement = document.getElementById('function-code');
+            const text = codeElement.textContent;
+            
+            navigator.clipboard.writeText(text).then(function() {
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show mt-2';
+                alert.innerHTML = 'Code copied to clipboard! <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                codeElement.parentNode.insertBefore(alert, codeElement.nextSibling);
+                
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.remove();
+                    }
+                }, 3000);
+            });
+        }
+    </script>
+</body>
+</html>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i data-feather="package"></i>
+                APK Editor
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('index') }}">
+                    <i data-feather="arrow-left"></i>
                     Back to Home
                 </a>
             </div>
