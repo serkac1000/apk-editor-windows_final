@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Function - APK Editor</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i data-feather="package"></i>
+                APK Editor
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('index') }}">
+                    <i data-feather="arrow-left"></i>
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Function Header -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="card-title mb-1">
+                            <i data-feather="zap"></i>
+                            Generated Function
+                        </h2>
+                        <p class="text-muted mb-0">
+                            Function ID: {{ function_id }}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="btn-group">
+                            <button class="btn btn-outline-success" onclick="copyToClipboard(document.getElementById('function_code').value)">
+                                <i data-feather="copy"></i>
+                                Copy Code
+                            </button>
+                            <a href="{{ url_for('download_function', function_id=function_id) }}" class="btn btn-outline-primary">
+                                <i data-feather="download"></i>
+                                Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generated Code Display -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="code"></i>
+                    Generated Code
+                </h5>
+            </div>
+            <div class="card-body">
+                <textarea id="function_code" class="form-control code-editor" rows="30" readonly>{{ function_code }}</textarea>
+                
+                <div class="mt-3 d-flex gap-2">
+                    <button class="btn btn-secondary" onclick="formatCode()">
+                        <i data-feather="code"></i>
+                        Format Code
+                    </button>
+                    <button class="btn btn-success" onclick="copyToClipboard(document.getElementById('function_code').value)">
+                        <i data-feather="copy"></i>
+                        Copy All
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage Instructions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="info"></i>
+                    How to Use Generated Code
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i data-feather="smartphone"></i> For Android Development:</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i data-feather="check" class="text-success"></i>
+                                Copy the generated code to your Android project
+                            </li>
+                            <li class="mb-2">
+                                <i data-feather="check" class="text-success"></i>
+                                Add XML layouts to your res/layout folder
+                            </li>
+                            <li class="mb-2">
+                                <i data-feather="check" class="text-success"></i>
+                                Add Java/Kotlin code to your Activity files
+                            </li>
+                            <li class="mb-2">
+                                <i data-feather="check" class="text-success"></i>
+                                Update colors.xml and strings.xml as needed
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i data-feather="package"></i> For APK Editing:</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i data-feather="check" class="text-success"></i>
+                                Use the XML parts in your decompiled APK
+                            </li>
+                            <li class="mb-2">
+                                <i data-feather="check" class="text-success"></i>
+                                Modify existing layout files with generated code
+                            </li>
+                            <li class="mb-2">
+                                <i data-feather="check" class="text-success"></i>
+                                Add new resources as needed
+                            </li>
+                            <li class="mb-2">
+                                <i data-feather="check" class="text-success"></i>
+                                Recompile APK after modifications
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate Another Function -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i data-feather="plus"></i>
+                    Generate Another Function
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('generate_function') }}" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="function_prompt" class="form-label">Describe New Function</label>
+                                <textarea class="form-control" id="function_prompt" name="function_prompt" rows="2" placeholder="Example: Add a text input field that validates email addresses..."></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="design_images" class="form-label">Design Images</label>
+                                <input type="file" class="form-control" id="design_images" name="design_images" accept="image/*" multiple>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i data-feather="zap"></i>
+                        Generate Function
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        feather.replace();
+        
+        function formatCode() {
+            const textarea = document.getElementById('function_code');
+            if (textarea) {
+                // Simple code formatting
+                let code = textarea.value;
+                
+                // Basic indentation fixes
+                code = code.replace(/\n\s*\n/g, '\n\n'); // Remove multiple blank lines
+                code = code.replace(/^\s+/gm, function(match) {
+                    return match.replace(/\t/g, '    '); // Convert tabs to spaces
+                });
+                
+                textarea.value = code;
+            }
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                APKEditor.showAlert('Code copied to clipboard!', 'success');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                APKEditor.showAlert('Failed to copy to clipboard', 'error');
+            });
+        }
+    </script>
+</body>
+</html>

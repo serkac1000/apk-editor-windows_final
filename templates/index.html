@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APK Editor</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i data-feather="package"></i>
+                APK Editor
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i data-feather="upload"></i>
+                            Upload APK
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('upload_apk') }}" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="project_name" class="form-label">Project Name</label>
+                                <input type="text" class="form-control" id="project_name" name="project_name" placeholder="Enter project name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="apk_file" class="form-label">APK File</label>
+                                <input type="file" class="form-control" id="apk_file" name="apk_file" accept=".apk" required>
+                                <div class="form-text">Maximum file size: 100MB</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i data-feather="upload"></i>
+                                Upload & Decompile
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i data-feather="zap"></i>
+                            AI Function Generator
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('generate_function') }}" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="function_prompt" class="form-label">Describe New Function</label>
+                                <textarea class="form-control" id="function_prompt" name="function_prompt" rows="3" placeholder="Example: Add a button that changes app icon color to blue..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="design_images" class="form-label">Upload Design Images (Optional)</label>
+                                <input type="file" class="form-control" id="design_images" name="design_images" accept="image/*" multiple>
+                                <div class="form-text">Upload reference images for design updates</div>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">
+                                <i data-feather="zap"></i>
+                                Generate Function
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i data-feather="info"></i>
+                            Instructions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <ol class="list-unstyled">
+                            <li class="mb-2">
+                                <i data-feather="upload" class="text-primary"></i>
+                                Upload an APK file to start editing
+                            </li>
+                            <li class="mb-2">
+                                <i data-feather="edit" class="text-primary"></i>
+                                Edit images, strings, and layouts
+                            </li>
+                            <li class="mb-2">
+                                <i data-feather="zap" class="text-success"></i>
+                                Generate new functions with AI prompts
+                            </li>
+                            <li class="mb-2">
+                                <i data-feather="package" class="text-primary"></i>
+                                Compile and sign your modified APK
+                            </li>
+                            <li class="mb-2">
+                                <i data-feather="download" class="text-primary"></i>
+                                Download the modified APK
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i data-feather="folder"></i>
+                            Your Projects
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if projects %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Project Name</th>
+                                            <th>Original APK</th>
+                                            <th>Created</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for project in projects %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ project.name }}</strong>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ project.original_apk }}</small>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ project.created_at[:10] }}</small>
+                                            </td>
+                                            <td>
+                                                {% if project.has_signed %}
+                                                    <span class="badge bg-success">
+                                                        <i data-feather="check-circle"></i>
+                                                        Signed
+                                                    </span>
+                                                {% elif project.has_compiled %}
+                                                    <span class="badge bg-warning">
+                                                        <i data-feather="package"></i>
+                                                        Compiled
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">
+                                                        <i data-feather="file"></i>
+                                                        Decompiled
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{{ url_for('project_view', project_id=project.id) }}" class="btn btn-outline-primary">
+                                                        <i data-feather="edit"></i>
+                                                    </a>
+                                                    {% if project.has_compiled or project.has_signed %}
+                                                        <a href="{{ url_for('download_apk', project_id=project.id) }}" class="btn btn-outline-success">
+                                                            <i data-feather="download"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    <a href="{{ url_for('delete_project', project_id=project.id) }}" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete this project?')">
+                                                        <i data-feather="trash-2"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i data-feather="inbox" class="text-muted" style="width: 64px; height: 64px;"></i>
+                                <h5 class="text-muted mt-3">No projects yet</h5>
+                                <p class="text-muted">Upload an APK file to get started</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>
