@@ -33,7 +33,7 @@ class APKSigner:
         except Exception as e:
             logger.error(f"Error creating debug keystore: {str(e)}")
     
-    def sign_apk(self, input_path, output_path=None):
+    def sign_apk(self, input_path, output_path=None, keystore=None, alias=None, password=None):
         """Sign an APK file"""
         try:
             if output_path is None:
@@ -41,11 +41,15 @@ class APKSigner:
                 if output_path == input_path:
                     output_path = input_path + '.signed'
             
+            # Use debug keystore if no keystore specified
+            if keystore is None:
+                keystore = self.debug_keystore
+            
             # For simplicity, we'll just copy the file in this simplified version
-            # In a real implementation, this would use jarsigner or apksigner
+            # In a real implementation, this would use jarsigner or apksigner with the keystore
             shutil.copy2(input_path, output_path)
             
-            logger.info(f"APK signed (simulated): {output_path}")
+            logger.info(f"APK signed (simulated) with keystore {keystore}: {output_path}")
             return True, output_path
         except Exception as e:
             logger.error(f"Error signing APK: {str(e)}")
@@ -65,3 +69,19 @@ class APKSigner:
         except Exception as e:
             logger.error(f"Error verifying APK: {str(e)}")
             return False, str(e)
+    
+    def list_keystores(self):
+        """List available keystores"""
+        try:
+            keystores = ['debug']  # Always include debug keystore
+            
+            # Look for other keystore files in the keystore folder
+            if os.path.exists(self.keystore_folder):
+                for file in os.listdir(self.keystore_folder):
+                    if file.endswith('.keystore') and file != 'debug.keystore':
+                        keystores.append(os.path.splitext(file)[0])
+            
+            return keystores
+        except Exception as e:
+            logger.error(f"Error listing keystores: {str(e)}")
+            return ['debug']
