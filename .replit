@@ -6,3 +6,15 @@ channel = "stable-24_05"
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[workflows]
+runButton = "Run APK Editor"
+
+[[workflows.workflow]]
+name = "Run APK Editor"
+author = 45197968
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"

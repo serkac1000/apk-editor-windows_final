@@ -443,7 +443,28 @@ def test_ai():
             'message': f'AI test failed: {str(e)}'
         })
 
+def generate_button_template(prompt):
+    """Generate button-related Android code"""
+    return """
+// XML Layout (add to your activity_main.xml)
+<Button
+    android:id="@+id/generated_button"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Generated Button"
+    android:layout_centerInParent="true"
+    android:padding="16dp"
+    android:background="@drawable/button_background"
+    android:textColor="@android:color/white"
+    android:onClick="onGeneratedButtonClick" />
 
+// Java Code (add to your Activity)
+public void onGeneratedButtonClick(View view) {
+    // Button click handler
+    Toast.makeText(this, "Button clicked!", Toast.LENGTH_SHORT).show();
+    
+    // Add your custom logic here
+    Log.d("ButtonClick", "Generated button was clicked");
 }
 
 // Optional: Button background drawable (res/drawable/button_background.xml)

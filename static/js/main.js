@@ -1,281 +1,166 @@
-
 // APK Editor JavaScript functionality
-const APKEditor = {
-    init: function() {
-        console.log('APK Editor initialized');
-        this.setupEventListeners();
-        this.initializeFeatherIcons();
-        this.setupAIFeatures();
-    },
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('APK Editor initialized');
 
-    setupEventListeners: function() {
-        // File upload validation
-        const fileInput = document.getElementById('apk_file');
-        if (fileInput) {
-            fileInput.addEventListener('change', this.validateFileUpload);
-        }
+    // Initialize feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
 
-        // Project form validation
-        const projectForm = document.getElementById('uploadForm');
-        if (projectForm) {
-            projectForm.addEventListener('submit', this.validateProjectForm);
-        }
+    // File upload handling
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const fileName = file.name;
+                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                console.log(`Selected file: ${fileName} (${fileSize} MB)`);
 
-        // GUI modification form
-        const guiForm = document.querySelector('form[action*="modify_gui"]');
-        if (guiForm) {
-            guiForm.addEventListener('submit', this.validateGuiForm);
-        }
-
-        // Function generator form
-        const functionForm = document.querySelector('form[action*="generate_function"]');
-        if (functionForm) {
-            functionForm.addEventListener('submit', this.validateFunctionForm);
-        }
-
-        // Image preview for uploads
-        const imageInputs = document.querySelectorAll('input[type="file"][accept*="image"]');
-        imageInputs.forEach(input => {
-            input.addEventListener('change', this.previewImages);
+                // Update UI to show selected file
+                const button = document.querySelector('.file-upload-button');
+                if (button) {
+                    button.textContent = fileName;
+                    button.classList.add('file-selected');
+                }
+            }
         });
-    },
+    }
 
-    initializeFeatherIcons: function() {
-        if (typeof feather !== 'undefined') {
-            feather.replace();
-        }
-    },
+    // Form submission handling
+    const uploadForm = document.querySelector('#upload-form');
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function(e) {
+            const fileInput = uploadForm.querySelector('input[type="file"]');
+            const projectName = uploadForm.querySelector('input[name="project_name"]');
 
-    validateFileUpload: function(event) {
-        const file = event.target.files[0];
-        const errorDiv = document.getElementById('file-error');
-        
-        if (errorDiv) {
-            errorDiv.textContent = '';
-        }
+            if (!fileInput.files[0]) {
+                e.preventDefault();
+                alert('Please select an APK file to upload.');
+                return;
+            }
 
-        if (file) {
-            // Check file size (100MB limit)
-            if (file.size > 100 * 1024 * 1024) {
-                if (errorDiv) {
-                    errorDiv.textContent = 'File size must be less than 100MB';
-                    errorDiv.className = 'alert alert-danger mt-2';
+            if (!projectName.value.trim()) {
+                e.preventDefault();
+                alert('Please enter a project name.');
+                return;
+            }
+
+            // Show loading state
+            const submitButton = uploadForm.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.textContent = 'Uploading...';
+                submitButton.disabled = true;
+            }
+        });
+    }
+
+    // AI Function Generator form handling
+    const aiForm = document.querySelector('#ai-function-form');
+    if (aiForm) {
+        aiForm.addEventListener('submit', function(e) {
+            const promptInput = aiForm.querySelector('textarea[name="function_prompt"]');
+
+            if (!promptInput.value.trim()) {
+                e.preventDefault();
+                alert('Please describe the function you want to generate.');
+                return;
+            }
+
+            // Show loading state
+            const submitButton = aiForm.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.textContent = 'Generating...';
+                submitButton.disabled = true;
+            }
+        });
+    }
+
+    // GUI Changes form handling
+    const guiForm = document.querySelector('#gui-changes-form');
+    if (guiForm) {
+        guiForm.addEventListener('submit', function(e) {
+            const changesInput = guiForm.querySelector('textarea[name="gui_changes"]');
+
+            if (!changesInput.value.trim()) {
+                e.preventDefault();
+                alert('Please describe the GUI changes you want.');
+                return;
+            }
+
+            // Show loading state
+            const submitButton = guiForm.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.textContent = 'Applying Changes...';
+                submitButton.disabled = true;
+            }
+        });
+    }
+
+    // Project action buttons
+    const actionButtons = document.querySelectorAll('.action-button');
+    actionButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const action = this.dataset.action;
+
+            if (action === 'delete') {
+                if (!confirm('Are you sure you want to delete this project?')) {
+                    e.preventDefault();
+                    return;
                 }
-                event.target.value = '';
-                return false;
             }
 
-            // Check file extension
-            if (!file.name.toLowerCase().endsWith('.apk')) {
-                if (errorDiv) {
-                    errorDiv.textContent = 'Please select an APK file';
-                    errorDiv.className = 'alert alert-danger mt-2';
-                }
-                event.target.value = '';
-                return false;
+            if (action === 'compile') {
+                this.textContent = 'Compiling...';
+                this.disabled = true;
             }
+        });
+    });
 
-            // Show file info
-            const fileInfo = document.getElementById('file-info');
-            if (fileInfo) {
-                fileInfo.innerHTML = `
-                    <div class="alert alert-info mt-2">
-                        <strong>Selected:</strong> ${file.name} (${APKEditor.formatFileSize(file.size)})
-                    </div>
-                `;
-            }
-        }
-
-        return true;
-    },
-
-    validateProjectForm: function(event) {
-        const projectName = document.getElementById('project_name');
-        const fileInput = document.getElementById('apk_file');
-
-        if (!projectName || !projectName.value.trim()) {
-            alert('Please enter a project name');
-            event.preventDefault();
-            return false;
-        }
-
-        if (!fileInput || !fileInput.files[0]) {
-            alert('Please select an APK file');
-            event.preventDefault();
-            return false;
-        }
-
-        // Show loading state
-        const submitBtn = event.target.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
-        }
-
-        return true;
-    },
-
-    validateGuiForm: function(event) {
-        const guiChanges = document.getElementById('gui_changes');
-        
-        if (!guiChanges || !guiChanges.value.trim()) {
-            alert('Please describe the GUI changes you want');
-            event.preventDefault();
-            return false;
-        }
-
-        // Show loading state
-        const submitBtn = event.target.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Applying Changes...';
-        }
-
-        return true;
-    },
-
-    validateFunctionForm: function(event) {
-        const functionPrompt = document.getElementById('function_prompt');
-        
-        if (!functionPrompt || !functionPrompt.value.trim()) {
-            alert('Please describe the function you want to generate');
-            event.preventDefault();
-            return false;
-        }
-
-        // Show loading state
-        const submitBtn = event.target.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
-        }
-
-        return true;
-    },
-
-    previewImages: function(event) {
-        const files = event.target.files;
-        const previewContainer = event.target.closest('.mb-3').querySelector('.image-preview');
-        
-        if (!previewContainer) {
-            const preview = document.createElement('div');
-            preview.className = 'image-preview mt-2';
-            event.target.closest('.mb-3').appendChild(preview);
-        }
-
-        const container = event.target.closest('.mb-3').querySelector('.image-preview');
-        container.innerHTML = '';
-
-        Array.from(files).forEach(file => {
-            if (file.type.startsWith('image/')) {
+    // Image preview functionality
+    const imageInputs = document.querySelectorAll('input[type="file"][accept*="image"]');
+    imageInputs.forEach(input => {
+        input.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'img-thumbnail me-2 mb-2';
-                    img.style.maxWidth = '100px';
-                    img.style.maxHeight = '100px';
-                    container.appendChild(img);
+                    // Create or update preview
+                    let preview = input.parentNode.querySelector('.image-preview');
+                    if (!preview) {
+                        preview = document.createElement('img');
+                        preview.className = 'image-preview';
+                        preview.style.maxWidth = '200px';
+                        preview.style.maxHeight = '200px';
+                        preview.style.marginTop = '10px';
+                        input.parentNode.appendChild(preview);
+                    }
+                    preview.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
             }
         });
+    });
+});
+
+// APKEditor object for backwards compatibility
+const APKEditor = {
+    init: function() {
+        console.log('APK Editor initialized via APKEditor.init()');
     },
 
-    formatFileSize: function(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    uploadFile: function(file) {
+        console.log('File upload requested:', file);
     },
 
-    setupAIFeatures: function() {
-        // Add test AI button if AI configuration section exists
-        const aiConfigSection = document.querySelector('.card-header h5:contains("AI Configuration")');
-        if (aiConfigSection) {
-            const testButton = document.createElement('button');
-            testButton.className = 'btn btn-sm btn-outline-primary ms-2';
-            testButton.innerHTML = '<i data-feather="zap"></i> Test AI';
-            testButton.onclick = this.testAI;
-            
-            const cardHeader = aiConfigSection.closest('.card-header');
-            if (cardHeader) {
-                cardHeader.appendChild(testButton);
-            }
-        }
+    generateFunction: function(prompt) {
+        console.log('Function generation requested:', prompt);
     },
 
-    testAI: function() {
-        const button = event.target.closest('button');
-        const originalText = button.innerHTML;
-        
-        button.disabled = true;
-        button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Testing...';
-        
-        fetch('/test_ai', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                APKEditor.showAlert(`AI Test Successful: ${data.message}`, 'success');
-            } else {
-                APKEditor.showAlert(`AI Test Failed: ${data.message}`, 'danger');
-            }
-        })
-        .catch(error => {
-            APKEditor.showAlert(`AI Test Error: ${error.message}`, 'danger');
-        })
-        .finally(() => {
-            button.disabled = false;
-            button.innerHTML = originalText;
-            feather.replace();
-        });
-    },
-
-    showAlert: function(message, type = 'info') {
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-        alertDiv.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        
-        const container = document.querySelector('.container-fluid') || document.body;
-        container.insertBefore(alertDiv, container.firstChild);
-        
-        // Auto dismiss after 5 seconds
-        setTimeout(() => {
-            if (alertDiv.parentNode) {
-                alertDiv.remove();
-            }
-        }, 5000);
+    modifyGUI: function(changes) {
+        console.log('GUI modification requested:', changes);
     }
 };
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    APKEditor.init();
-});
-
-// Handle form submissions with progress
-document.addEventListener('submit', function(event) {
-    const form = event.target;
-    const submitBtn = form.querySelector('button[type="submit"]');
-    
-    if (submitBtn && !submitBtn.disabled) {
-        const originalText = submitBtn.innerHTML;
-        
-        // Add progress indicator
-        setTimeout(() => {
-            if (submitBtn.disabled) {
-                submitBtn.innerHTML = originalText.replace('Processing...', 'Processing...') || 
-                                    '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-            }
-        }, 100);
-    }
-});
+// Auto-initialize APKEditor
+APKEditor.init();
