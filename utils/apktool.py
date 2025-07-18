@@ -16,7 +16,9 @@ class APKTool:
             '/usr/local/bin/apktool',
             '/usr/bin/apktool',
             shutil.which('apktool'),
-            './apktool.jar'
+            './apktool.jar',
+            './tools/apktool.jar',  # Windows installation
+            'tools/apktool.jar'     # Windows installation
         ]
         
         for path in possible_paths:
@@ -203,7 +205,6 @@ class APKTool:
     def _simulate_compile(self, source_dir, output_apk):
         """Simulate compilation when apktool is not available"""
         try:
-            # Create a proper APK structure
             import zipfile
             
             with zipfile.ZipFile(output_apk, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -212,33 +213,68 @@ class APKTool:
                 if os.path.exists(manifest_path):
                     zipf.write(manifest_path, 'AndroidManifest.xml')
                 
-                # Add resources
-                res_dir = os.path.join(source_dir, 'res')
-                if os.path.exists(res_dir):
-                    for root, dirs, files in os.walk(res_dir):
-                        for file in files:
-                            file_path = os.path.join(root, file)
-                            arcname = os.path.relpath(file_path, source_dir)
+                # Add all files from source directory
+                for root, dirs, files in os.walk(source_dir):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        arcname = os.path.relpath(file_path, source_dir)
+                        try:
                             zipf.write(file_path, arcname)
+                        except Exception as e:
+                            logging.warning(f"Could not add file to APK: {arcname}")
                 
-                # Add classes.dex (dummy)
-                zipf.writestr('classes.dex', b'dex\n035\x00' + b'\x00' * 100)
+                # Add proper APK structure
+                # Add classes.dex with proper header
+                dex_header = (
+                    b'dex\n035\x00'  # DEX magic + version
+                    + b'\x00' * 4     # checksum (placeholder)
+                    + b'\x00' * 20    # SHA-1 signature (placeholder)
+                    + (8192).to_bytes(4, 'little')  # file size
+                    + (0x70).to_bytes(4, 'little')  # header size
+                    + (0x12345678).to_bytes(4, 'little')  # endian tag
+                    + b'\x00' * (0x70 - 36)  # rest of header
+                )
+                zipf.writestr('classes.dex', dex_header + b'\x00' * (8192 - len(dex_header)))
                 
-                # Add META-INF
-                zipf.writestr('META-INF/MANIFEST.MF', 'Manifest-Version: 1.0\n')
-                zipf.writestr('META-INF/CERT.SF', 'Signature-Version: 1.0\n')
-                zipf.writestr('META-INF/CERT.RSA', b'\x00' * 100)
+                # Add resources.arsc (dummy binary resources)
+                zipf.writestr('resources.arsc', b'\x02\x00\x0C\x00' + b'\x00' * 1020)
+                
+                # Add proper META-INF files
+                manifest_mf = '''Manifest-Version: 1.0
+Created-By: APK Editor Simulator
+
+Name: AndroidManifest.xml
+SHA1-Digest: placeholder
+
+Name: classes.dex
+SHA1-Digest: placeholder
+
+'''
+                zipf.writestr('META-INF/MANIFEST.MF', manifest_mf)
+                
+                cert_sf = '''Signature-Version: 1.0
+Created-By: APK Editor Simulator
+SHA1-Digest-Manifest: placeholder
+
+Name: AndroidManifest.xml
+SHA1-Digest: placeholder
+
+Name: classes.dex
+SHA1-Digest: placeholder
+
+'''
+                zipf.writestr('META-INF/CERT.SF', cert_sf)
+                
+                # Add dummy certificate (RSA signature)
+                rsa_cert = (
+                    b'\x30\x82\x03\x85\x30\x82\x02\x6d'  # ASN.1 certificate header
+                    + b'\x00' * 900  # Dummy certificate data
+                )
+                zipf.writestr('META-INF/CERT.RSA', rsa_cert)
             
             logging.info("Simulated compilation completed (APKTool not available)")
             return True
             
         except Exception as e:
             logging.error(f"Simulate compile error: {str(e)}")
-            # Fallback to simple file
-            try:
-                with open(output_apk, 'wb') as f:
-                    f.write(b'PK\x03\x04')  # ZIP file signature
-                    f.write(b'\x00' * 1024)  # Dummy content
-                return True
-            except:
-                return False
+            return False
